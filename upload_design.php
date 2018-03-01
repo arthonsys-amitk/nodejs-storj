@@ -59,7 +59,7 @@ use Jenssegers\ImageHash\ImageHash;
 						$distance = $hasher->distance($hash1, $db_imagehash);
 						if($distance < 5) {
 							$similar_img = 1;
-							$error[] = "Image having same hash already exists on the server";
+							$error[] = "This image already exists on the server";
 						}
 					}
 				}
@@ -67,7 +67,9 @@ use Jenssegers\ImageHash\ImageHash;
 				if(!$similar_img) {
 					$ch = curl_init();
 					curl_setopt($ch, CURLOPT_POST, true);
-					curl_setopt($ch, CURLOPT_POSTFIELDS, array('bucketid' => '592f7d178324eb8a7f54647e' , 'filetoupload' => '@' . $fTmpName));
+					$imgdata['bucketid'] = '592f7d178324eb8a7f54647e';
+					$imgdata['filetoupload'] = new CurlFile($fTmpName, 'image/png', basename($fTmpName));
+					curl_setopt($ch, CURLOPT_POSTFIELDS, $imgdata);
 					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 					curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
 					$response = curl_exec($ch);				
