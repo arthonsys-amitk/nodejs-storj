@@ -64,24 +64,6 @@ use Jenssegers\ImageHash\ImageHash;
 					}
 				}
 				
-				if(!$similar_img) {
-					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_POST, true);
-					$imgdata['bucketid'] = '592f7d178324eb8a7f54647e';
-					$imgdata['filetoupload'] = new CurlFile($fTmpName, 'image/png', basename($fTmpName));
-					curl_setopt($ch, CURLOPT_POSTFIELDS, $imgdata);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-					curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
-					$response = curl_exec($ch);				
-					if($response === false) {
-						$error[] = "Error occurred." . curl_error($ch);
-					} elseif(strpos($response, "File uploaded with fileid") === false) {
-						//$error[] = "File already exists on server.";
-						$error[] = $response;
-					}
-					curl_close($ch);
-				}
-				
 				if( empty($design_title) ) {
 					$error[] = "Design title required.";
 				}
@@ -136,6 +118,25 @@ use Jenssegers\ImageHash\ImageHash;
 					$up_filename = str_replace("\\", "/", getcwd().'/uploads/'.$size_full.$ext);
 					$move_file 	= move_uploaded_file( $fTmpName, $up_filename);
 					
+					
+					if(!$similar_img) {
+						$ch = curl_init();
+						curl_setopt($ch, CURLOPT_POST, true);
+						$imgdata['bucketid'] = '592f7d178324eb8a7f54647e';
+						//$imgdata['filetoupload'] = new CurlFile($fTmpName, 'image/png', basename($fTmpName));
+						$imgdata['filetoupload'] = new CurlFile($up_filename, $fType, basename($up_filename));
+						curl_setopt($ch, CURLOPT_POSTFIELDS, $imgdata);
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+						curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
+						$response = curl_exec($ch);				
+						if($response === false) {
+							$error[] = "Error occurred." . curl_error($ch);
+						} elseif(strpos($response, "File uploaded with fileid") === false) {
+							//$error[] = "File already exists on server.";
+							$error[] = $response;
+						}
+						curl_close($ch);
+					}
 					
 					
 					if(empty($error)) {					
