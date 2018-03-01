@@ -22,6 +22,14 @@
 	}
 ?>
 
+<?php
+require_once __DIR__ . '\..\imagehash\src\Implementation.php';
+require_once __DIR__ . '\..\imagehash\src\Implementations\DifferenceHash.php';
+require_once __DIR__ . '\..\imagehash\src\ImageHash.php';
+
+use Jenssegers\ImageHash\ImageHash;
+?>
+
 <?php if(isset($_POST['submit'])): ?>
 	<div class="row">
 		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -40,21 +48,37 @@
 				$ext  = "";
 				$size_full = "";
 				$ok = '0';
-
-				$ch = curl_init();
-				curl_setopt($ch, CURLOPT_POST, true);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, array('bucketid' => '592f7d178324eb8a7f54647e' , 'filetoupload' => '@' . $fTmpName));
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
-				$response = curl_exec($ch);
 				
-				if($response === false) {
-					$error[] = "Error occurred." . curl_error($ch);
-				} elseif(strpos($response, "File uploaded with fileid") === false) {
-					$error[] = "File already exists on server.";
+				$hasher = new ImageHash;
+				$hash1 = $hasher->hash($tmpname);
+				$db_collection = $database->select('designs', "*",[]);
+				$similar_img = 0;
+				foreach($db_collection as $row) {
+					$db_imagehash = $row['imagehash'];
+					if(!is_null($db_imagehash) && $db_imagehash) {
+						$distance = $hasher->distance($hash1, $db_imagehash);
+						if($distance < 5) {
+							$similar_img = 1;
+							$error[] = "Image having same hash already exists on the server";
+						}
+					}
 				}
-				curl_close($ch);
 				
+				if(!$similar_img) {
+					$ch = curl_init();
+					curl_setopt($ch, CURLOPT_POST, true);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, array('bucketid' => '592f7d178324eb8a7f54647e' , 'filetoupload' => '@' . $fTmpName));
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+					curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
+					$response = curl_exec($ch);				
+					if($response === false) {
+						$error[] = "Error occurred." . curl_error($ch);
+					} elseif(strpos($response, "File uploaded with fileid") === false) {
+						//$error[] = "File already exists on server.";
+						$error[] = $response;
+					}
+					curl_close($ch);
+				}
 				
 				if( empty($design_title) ) {
 					$error[] = "Design title required.";
@@ -107,25 +131,35 @@
 					@img_resize( $tmpname , 400, "./uploads" , $size_thumbnail.".jpg");
 
 					$size_full 	= md5( $_FILES['design']['tmp_name'].'size_full'.$r );
-					$move_file 	= move_uploaded_file( $fTmpName, getcwd().'/uploads/'.$size_full.$ext );
-
-					$result = $database->insert("designs",[
-																			"user_id" 				=> $_SESSION['user_id'],
-																			"design_title" 		=> $design_title,
-																			"description" 		=> $description,
-																			"category" 				=> $category,
-																			"subcategory" 		=> $subcategory,
-																			"size_thumbnail" 	=> $size_thumbnail.'.jpg',
-																			"size_medium" 		=> $size_medium.'.jpg',
-																			"size_full" 			=> $size_full.$ext,
-																			"visibility" 			=> $visibility
-																			]);
-						if( $result ) :
-							$ok = '1';
-							$design_title = $_POST['design_title'] = '';
-							$description 	= $_POST['description'] = '';
-							$_FILES = '';
-						endif;
+					$up_filename = str_replace("\\", "/", getcwd().'/uploads/'.$size_full.$ext);
+					$move_file 	= move_uploaded_file( $fTmpName, $up_filename);
+					
+					
+					
+					if(empty($error)) {					
+						$result = $database->insert("designs",[
+																				"user_id" 				=> $_SESSION['user_id'],
+																				"design_title" 		=> $design_title,
+																				"description" 		=> $description,
+																				"category" 				=> $category,
+																				"subcategory" 		=> $subcategory,
+																				"size_thumbnail" 	=> $size_thumbnail.'.jpg',
+																				"size_medium" 		=> $size_medium.'.jpg',
+																				"size_full" 			=> $size_full.$ext,
+																				"visibility" 			=> $visibility,
+																				"imagehash" 			=> $hash1
+																				]);
+							if( $result ) :
+								$ok = '1';
+								$design_title = $_POST['design_title'] = '';
+								$description 	= $_POST['description'] = '';
+								$_FILES = '';
+							endif;
+					} else {
+						//delete file
+						$del_filename = getcwd().'/uploads/'.$size_full.$ext;
+						@unlink($del_filename);
+					}
 				}
 			?>
 
