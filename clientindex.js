@@ -17,7 +17,7 @@ app.get('/getBucketList', function(req, res){
 		const storj = new libstorj.Environment({
 		  bridgeUrl: 'https://api.storj.io',
 		  bridgeUser: 'sagar@yssmedia.com',
-		  bridgePass: 'Sagar@Arthonsys',
+		  bridgePass: 'Sagar@Yssmedia',
 		  encryptionKey: 'exhaust plug anchor mind unhappy inmate ill edit noble puzzle cart clip',
 		  logLevel: 0
 		});
@@ -83,7 +83,7 @@ app.post('/postimage', function(req, res){
 			const storj = new libstorj.Environment({
 			  bridgeUrl: 'https://api.storj.io',
 			  bridgeUser: 'sagar@yssmedia.com',
-			  bridgePass: 'Sagar@Arthonsys',
+			  bridgePass: 'Sagar@Yssmedia',
 			  encryptionKey: 'exhaust plug anchor mind unhappy inmate ill edit noble puzzle cart clip',
 			  logLevel: 0
 			});
