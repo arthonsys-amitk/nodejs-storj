@@ -23,9 +23,9 @@
 ?>
 
 <?php
-require_once __DIR__ . '\..\imagehash\src\Implementation.php';
-require_once __DIR__ . '\..\imagehash\src\Implementations\DifferenceHash.php';
-require_once __DIR__ . '\..\imagehash\src\ImageHash.php';
+require_once __DIR__ . '/../imagehash/src/Implementation.php';
+require_once __DIR__ . '/../imagehash/src/Implementations/DifferenceHash.php';
+require_once __DIR__ . '/../imagehash/src/ImageHash.php';
 
 use Jenssegers\ImageHash\ImageHash;
 ?>
@@ -122,12 +122,14 @@ use Jenssegers\ImageHash\ImageHash;
 					if(!$similar_img) {
 						$ch = curl_init();
 						curl_setopt($ch, CURLOPT_POST, true);
-						$imgdata['bucketid'] = '592f7d178324eb8a7f54647e';
+						//$imgdata['bucketid'] = '592f7d178324eb8a7f54647e';
+						$imgdata['bucketid'] = '92ca4dfb52d63b7e6b7454d8';
 						//$imgdata['filetoupload'] = new CurlFile($fTmpName, 'image/png', basename($fTmpName));
 						$imgdata['filetoupload'] = new CurlFile($up_filename, $fType, basename($up_filename));
 						curl_setopt($ch, CURLOPT_POSTFIELDS, $imgdata);
 						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-						curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
+						//curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3000/postimage');
+						curl_setopt($ch, CURLOPT_URL, 'http://188.166.168.216:3030/postimage');
 						$response = curl_exec($ch);				
 						if($response === false) {
 							$error[] = "Error occurred." . curl_error($ch);
@@ -208,10 +210,11 @@ use Jenssegers\ImageHash\ImageHash;
 									 "You currently have ".$count." upload(s) remaining in your current quota." . "<br><br><br>" .
 									 "Protect Your Design" . "<br>" .
 									 "Lawdit Solicitors" . "<br><br>";
-				// $headers = 'From: nobody@protectyourdesign.com' . "<br>" .
-				// 					 'Reply-To: nobody@protectyourdesign.com';
+				 $headers = 'From: nobody@protectyourdesign.com' . "<br>" .
+				 					 'Reply-To: nobody@protectyourdesign.com';
 
-				// @mail($to, $subject, $message, $headers,'-fnobody@protectyourdesign.com');
+				 @mail($to, $subject, $message, $headers,'-fnobody@protectyourdesign.com');
+				/*
 				$mail->addAddress( $to );
 
 					$mail->Subject = $subject;
@@ -220,6 +223,7 @@ use Jenssegers\ImageHash\ImageHash;
 					if (!$mail->send()) {
 						echo "Mailer Error: " . $mail->ErrorInfo;
 					}
+				*/
 			?>
 			<?php else: ?>
 
